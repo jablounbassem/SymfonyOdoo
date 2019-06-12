@@ -1,0 +1,43 @@
+odoo_connector_purchaseOrderLists:
+    path:     /purchaseorder
+    defaults: { _controller: OdooClientBundle:Purchase:listPurchase   }
+
+odoo_connector_addPurchaseForm:
+    path:     /add/purchaseorder/
+    defaults: { _controller: OdooClientBundle:Purchase:addPurchaseForm   }
+
+
+odoo_connector_addPurchase:
+    path:     /purchase
+    defaults: { _controller: OdooClientBundle:Purchase:addPurchase   }
+
+odoo_connector_getPurchase:
+    path:     /purchase/{id}
+    defaults: { _controller: OdooClientBundle:Purchase:getPurchase   }
+
+odoo_connector_updatePurchaseForm:
+    path:     /update/purchase/{id}
+    defaults: { _controller: OdooClientBundle:Purchase:updatePurchaseForm   }
+
+odoo_connector_updatePurchase:
+    path:     /update/purchase
+    defaults: { _controller: OdooClientBundle:Purchase:updatePurchase   }
+
+odoo_connector_getProviders:
+    path:     /providers
+    defaults: { _controller: OdooClientBundle:Purchase:getProviders   }
+odoo_connector_updateStatePurchaseOrder:
+    path:     /state/purchase/{id}/{state}
+    defaults: { _controller: OdooClientBundle:Purchase:updatePurchaseOrderState   }
+
+odoo_connector_InvoiceListe:
+    path:     /get/invoices
+    defaults: { _controller: OdooClientBundle:Invoice:listInvoice   }
+
+odoo_connector_createInvoiceForm:
+    path:     /create/invoices/
+    defaults: { _controller: OdooClientBundle:Invoice:CreateInvoiceForm   }
+
+odoo_connector_createBankAcount:
+    path:     /create/ank/account
+    defaults: { _controller: OdooClientBundle:Invoice:test   }

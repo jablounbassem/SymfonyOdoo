@@ -1,0 +1,429 @@
+{% extends '@OdooClient/master/index.html.twig' %}
+{% block titre %}
+    {{ purchase.name }}
+{% endblock %}
+{% block css %}
+
+    <link rel="stylesheet" href="{{ asset('assets/vendor/pnotify/pnotify.custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/stylesheets/theme-custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendor/bootstrap-timepicker/css/bootstrap-timepicker.css') }}"/>
+
+{% endblock %}
+{% block navbar %}
+    {% include '@OdooClient/icludes/purchase_nav.html.twig' %}
+{% endblock %}
+
+{% block body %}
+    <br>
+
+    <b><a href="{{ path('odoo_connector_purchaseOrderLists') }}" style="color: #5F5E97">Demandes des prix</a>
+        / {{ purchase.display_name }}</b> <br>
+    <form class="form-horizontal form-bordered" method="post" action="{{ path('odoo_connector_addPurchase') }}">
+        <a href="{{ path('odoo_connector_updatePurchaseForm',{'id':purchase.id}) }}" class="btn btn-sm btn-primary">Modifier</a>
+        <a href="{{ path('odoo_connector_addPurchaseForm') }}"><span class="btn btn-sm btn-default">Créer</span></a>
+        <hr/>
+
+        <div class="row">
+
+            {% if purchase.state=='draft' %}
+
+                <div class="col-md-6">
+                    <a href="#" onclick="printDiv()"><span
+                                class="btn btn-sm btn-primary">Imprimer demande de prix</span></a>
+                    <a href="{{ path('odoo_connector_updateStatePurchaseOrder',{'id':purchase.id,state:'purchase'}) }}"><span
+                                class="btn btn-sm btn-primary">Confirmer la commande</span></a>
+                    <a href="{{ path('odoo_connector_updateStatePurchaseOrder',{'id':purchase.id,state:'cancel'}) }}"><span
+                                class="btn btn-sm btn-default">Annuler</span></a>
+                    <br>
+                </div>
+                <div class="col-md-6">
+                    <div class="wizard-tabs" style="border:1px solid #cccccc;">
+                        <ul class="wizard-steps">
+                            <li>
+                                <a href="#w1-account" data-toggle="tab" class="text-center">
+                                    <b style="color:#7B7BAD"> Demande de prix</b>
+                                </a>
+                            </li>
+                            <li class="active">
+                                <a href="#w1-profile" data-toggle="tab" class="text-center">
+                                    Demande de prix envoyée
+                                </a>
+                            </li>
+                            <li class="active">
+                                <a href="#w1-confirm" data-toggle="tab" class="text-center">
+                                    Commande Fournisseur
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <br>
+                </div>
+
+            {% elseif purchase.state=='purchase' %}
+                <div class="col-md-6">
+                    {% if (commandeLines|length) > 0 %}
+                    <a href="#" onclick="createInvoice()"><span class="btn btn-sm btn-default">Crée une facture</span></a>
+                    {% endif %}
+                    <a href="{{ path('odoo_connector_updateStatePurchaseOrder',{'id':purchase.id,state:'cancel'}) }}"><span
+                                class="btn btn-sm btn-default">Annuler</span></a>
+                    <a href="{{ path('odoo_connector_updateStatePurchaseOrder',{'id':purchase.id,state:'done'}) }}"><span
+                                class="btn btn-sm btn-default">Blocker</span></a>
+                    <br>
+                </div>
+                <div class="col-md-6">
+                    <div class="wizard-tabs" style="border:1px solid #cccccc;">
+                        <ul class="wizard-steps">
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Demande de prix
+                                </a>
+                            </li>
+                            <li class="active">
+                                <a href="#w" data-toggle="tab" class="text-center">
+                                    Demande de prix envoyée
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    <b style="color:#7B7BAD"> Commande Fournisseur</b>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <br>
+                </div>
+            {% elseif purchase.state=='done' %}
+                <div class="col-md-6">
+                    {% if (commandeLines|length) > 0 %}
+
+                    <a href="#" onclick="createInvoice()"><span class="btn btn-sm btn-default">Créer une facture</span></a>
+                    {% endif %}
+                    <a href="{{ path('odoo_connector_updateStatePurchaseOrder',{'id':purchase.id,state:'purchase'}) }}"><span
+                                class="btn btn-sm btn-default">Déverrouiller</span></a>
+                    <br>
+                </div>
+                <div class="col-md-6">
+                    <div class="wizard-tabs" style="border:1px solid #cccccc;">
+                        <ul class="wizard-steps">
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Demande de prix
+                                </a>
+                            </li>
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Demande de prix envoyée
+                                </a>
+                            </li>
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Commande Fournisseur </a>
+                            </li>
+                            <li>
+                                <a href="#w1-confirm" data-toggle="tab" class="text-center">
+                                    <b style="color:#7B7BAD"> Bloqué</b>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <br>
+                </div>
+            {% elseif purchase.state=='sent' %}
+                <div class="col-md-6">
+                    <a href="{{ path('odoo_connector_updateStatePurchaseOrder',{'id':purchase.id,state:'purchase'}) }}"><span
+                                class="btn btn-sm btn-primary">Confirmer la commande</span></a>
+                    <a href="#" onclick="printDiv()"><span
+                                class="btn btn-sm btn-default">Imprimer demande de prix</span></a>
+                    <a href="{{ path('odoo_connector_updateStatePurchaseOrder',{'id':purchase.id,state:'cancel'}) }}"><span
+                                class="btn btn-sm btn-default">Annuler</span></a>
+
+                    <br>
+                </div>
+                <div class="col-md-6">
+                    <div class="wizard-tabs" style="border:1px solid #cccccc;">
+                        <ul class="wizard-steps">
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Demande de prix
+                                </a>
+                            </li>
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Demande de prix envoyée
+                                </a>
+                            </li>
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Commande Fournisseur </a>
+                            </li>
+                            <li>
+                                <a href="#w1-confirm" data-toggle="tab" class="text-center">
+                                    <b style="color:#7B7BAD"> Bloqué</b>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <br>
+                </div>
+            {% else %}
+                <div class="col-md-6">
+                    <a href="{{ path('odoo_connector_updateStatePurchaseOrder',{'id':purchase.id,state:'draft'}) }}"><span
+                                class="btn btn-sm btn-default">Marquer comme brouillon</span></a>
+
+                    <br>
+                </div>
+                <div class="col-md-6">
+                    <div class="wizard-tabs" style="border:1px solid #cccccc;">
+                        <ul class="wizard-steps">
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Demande de prix
+                                </a>
+                            </li>
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Demande de prix envoyée
+                                </a>
+                            </li>
+                            <li class="active">
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    Commande Fournisseur
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" data-toggle="tab" class="text-center">
+                                    <b style="color:#7B7BAD"> Annulé </b>
+                                </a>
+                            </li>
+
+
+                        </ul>
+                    </div>
+                    <br>
+                </div>
+            {% endif %}
+        </div>
+        <hr/>
+    
+
+        <div class="row">
+
+        </div>
+
+        <br><br><br>
+        <section class="panel">
+
+            <div class="panel-heading">
+                <h3><b>{{ purchase.name }}</b></h3>
+                <br>
+
+
+                <div class="row">
+
+
+                    <div class="col-md-2" style=" border-right: 1px solid silver; ">
+
+                        <div><b>Fournisseur</b></div>
+
+                    </div>
+
+                    <div class="col-md-4">
+                        <div>{{ purchase.partner_id[1] }}</div>
+
+                    </div>
+                    <div class="col-md-2" style=" border-right: 1px solid silver; "><b>Date de la commande</b></div>
+                    <div class="col-md-2">{{ purchase.date_order|date('d/m/Y h:m:s') }}</div>
+
+                </div>
+                <div class="row">
+
+                    <div class="col-md-2" style=" border-right: 1px solid silver; ">
+                        <br>
+                        <div style="font-weight: lighter"><b>Référence Fournisseur</b></div>
+
+                    </div>
+                    <div class="col-md-2">
+                        <br>
+                        {{ purchase.partner_ref }}
+
+                    </div>
+                </div>
+                <br><br>
+                <!-- -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <section class="panel">
+
+                            <div class="">
+                                <div class="table-responsive">
+                                    <table class="table" style="background-color:#ffffff">
+                                        <thead class="active" style="background-color:#CCCCCC">
+                                        <th scope="col">Article</th>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">Date prévue</th>
+                                        <th scope="col">Quantité</th>
+                                        <th scope="col">Prix unitaire</th>
+                                        <th scope="col">Taxes</th>
+                                        <th scope="col">Sous-Total</th>
+
+                                        </thead>
+                                        <tbody id="container">
+                                        {% if (commandeLines|length) > 0 %}
+                                            {% for cl in commandeLines %}
+                                                <tr>
+                                                    <td>{{ cl.product_id[1] }}</td>
+                                                    <td>{{ cl.name }}</td>
+                                                    <td>{{ cl.date_planned|date('d/m/Y h:m:s') }}</td>
+                                                    <td>{{ cl.product_qty }}</td>
+                                                    <td>{{ cl.price_unit }}</td>
+                                                    <td>
+
+                                                        {% if cl.taxes is defined %}
+                                                            {% for taxe in cl.taxes %}
+                                                                <div style="border-radius: 100px;  border-color: #CCCCCC;border-style: solid;  ">{{ taxe }}</div>
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ cl.price_subtotal }} DT</td>
+                                                </tr>
+
+                                            {% endfor %}
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td><b>Montant HT :</b></td>
+                                                <td>{{ purchase.amount_untaxed }} DT</td>
+                                            </tr>
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td><b>Taxes :</b></td>
+                                                <td>{{ purchase.amount_tax }} DT</td>
+                                            </tr>
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td><b>Total :</b></td>
+                                                <td>{{ purchase.amount_total }} DT</td>
+                                            </tr>
+                                        {% endif %}
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </form>
+    {% if (purchase.state=='draft') or (purchase.state=='sent') %}
+        <input type="hidden" value="{{ purchase.name }}" id="purchase">
+        <input type="hidden" value="{{ purchase.state }}" id="state">
+        <div id="facture" style="height: 100%;position: relative" hidden>
+            <!-- <img alt="Embedded Image" src="{{ company.logo }}" /> -->
+            <img alt="Embedded Image" width="150px" height="60px"
+                 src="http://localhost:8069/web/image?model=res.company&id=1&field=logo&unique=12052019184258"/>
+            <hr style="border-top:1px solid #000000;"/>
+
+            <table>
+                <tr>
+                    <td width="500px">
+
+                        {{ company.name }}<br>
+                        {{ company.street }}<br>
+                        {{ company.zip }}<br>
+                        {{ company.country }}
+
+                    </td>
+                    <td>
+                         <span style="float: right">
+                        {{ vendor.name }}<br>
+                        {{ vendor.street }}<br>
+                        {{ vendor.city }} {{ vendor.zip }}<br>
+                        {{ vendor.country_id[1] }}<br>
+                        <span class="glyphicon glyphicon-earphone"></span> {{ vendor.phone }}
+                         </span>
+                    </td>
+                </tr>
+            </table>
+
+            <br> <br>
+            <h1>Demande de prix {{ purchase.name }}</h1>
+            <table style="border: 1px">
+                <thead>
+
+                <th>Description</th>
+                <th>Date prévue</th>
+                <th>Qté</th>
+                </thead>
+                {% if (commandeLines|length) > 0 %}
+                    {% for cl in commandeLines %}
+                        <tr>
+                            <td width="300px">{{ cl.name }}</td>
+                            <td width="300px">
+                                <center>{{ cl.date_planned|date('d/m/Y h:m:s') }}</center>
+                            </td>
+                            <td width="300px">
+                                <center>{{ cl.product_qty }}</center>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+
+            </table>
+            <div style="position: absolute;float: bottom;bottom: 0">
+                <hr style="border-top:1px solid #000000;"/>
+                <center>
+                    Téléphone : {{ company.phone }}&nbsp;&nbsp;Courriel : {{ company.email }}
+                    &nbsp;&nbsp;Web: {{ company.website }}
+                </center>
+            </div>
+        </div>
+    {% endif %}
+    <form action="{{ path('odoo_connector_createInvoiceForm') }}" method="post" id="myForm">
+        <input type="hidden" name="id" value="{{ purchase.id }}">
+    </form>
+{% endblock %}
+{% block javacript %}
+    <script type="application/javascript">
+        function printDiv() {
+            let mywindow = window.open('', 'PRINT', 'height=2480,width=3508 ,top=100,left=150');
+            let name = 'Request for Quotation ' + document.getElementById('purchase').value;
+            mywindow.document.write(`<html><head><title>${name}</title>`);
+            mywindow.document.write('</head><body >');
+            mywindow.document.write(document.getElementById('facture').innerHTML);
+            mywindow.document.write('</body></html>');
+            mywindow.document.close(); // necessary for IE >= 10
+            mywindow.focus(); // necessary for IE >= 10*/
+            mywindow.print();
+            mywindow.close();
+            let state = document.getElementById('state').value;
+            if (state == 'draft') {
+                window.location = '{{ path('odoo_connector_updateStatePurchaseOrder',{'id':purchase.id,state:'sent'}) }}';
+            }
+        }
+        function createInvoice() {
+            document.getElementById("myForm").submit();
+
+        }
+    </script>
+    <script src="{{ asset('assets/vendor/jquery-autosize/jquery.autosize.js') }}"></script>
+    <script src="{{ asset('assets/vendor/bootstrap-timepicker/js/bootstrap-timepicker.js') }}"></script>
+
+{% endblock %}
